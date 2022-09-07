@@ -1,3 +1,11 @@
+"""
+Customised implementation of the original paper:
+    DivideMix: Learning With Noisy Labels as Semi-Supervised Learning
+    https://openreview.net/pdf?id=HJgExaVtwr
+    https://github.com/LiJunnan1992/DivideMix
+"""
+
+
 import sys
 import numpy as np
 from tqdm import tqdm
