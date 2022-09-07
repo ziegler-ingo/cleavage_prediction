@@ -1,3 +1,4 @@
 .ipynb_checkpoints
 .DS_Store
 mhc1_cleavages_nc_ranks.csv
+__pycache__/
