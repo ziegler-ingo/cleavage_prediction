@@ -59,14 +59,12 @@ class CleavageDataset(Dataset):
                 self.seq, self.lbl = sequences, labels
             elif self.mode == "labeled" and pred is not None and probability is not None:
                 # get indices of labels considered 'clean' by GMM
-                pred_idx = np.nonzero(pred)[0]
-                self.prob = probability[pred_idx]
-                self.seq, self.lbl = np.array(sequences)[pred_idx], np.array(labels)[pred_idx]
+                self.prob = probability[pred]
+                self.seq, self.lbl = np.array(sequences)[pred], np.array(labels)[pred]
  
             elif self.mode == "unlabeled" and pred is not None:
                 # get indices of labels considered 'noisy' by GMM
-                pred_idx = np.nonzero(~pred)[0]
-                self.seq = np.array(sequences)[pred_idx] 
+                self.seq = np.array(sequences)[~pred] 
             else:
                 raise Exception(
                     "Either args `pred` and/or `probability` need to be given when loading `mode`='train'."

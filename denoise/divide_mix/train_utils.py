@@ -20,12 +20,12 @@ device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 
 class SemiLoss:
-    def __call__(self, out_x, lbl_x, out_u, lbl_u, lambda_u, epoch, warm_up):
+    def __call__(self, out_x, lbl_x, out_u, lbl_u, lambda_u, epoch, warm_up, rampup_len):
         probs_u = torch.softmax(out_u, dim=1)
 
         Lx = -torch.mean(torch.sum(F.log_softmax(out_x, dim=1) * lbl_x, dim=1))
         Lu = torch.mean((probs_u - lbl_u) ** 2)
-        return Lx, Lu, linear_rampup(lambda_u, epoch, warm_up)
+        return Lx, Lu, linear_rampup(lambda_u, epoch, warm_up, rampup_len)
 
 
 class NegEntropy:
@@ -71,11 +71,13 @@ def train(
     loss_func,
     num_warm_up_epochs,
     num_classes,
+    lambda_u,
     temp,
     beta_dist,
     batch_size,
     labeled_loader,
     unlabeled_loader,
+    rampup_len,
     named_model,
 ):
     epoch_loss, total = 0, 0
@@ -163,13 +165,15 @@ def train(
         logits_x, logits_u = logits[: batch_size * 2], logits[batch_size * 2 :]
 
         # custom SemiLoss
-        Lx, Lu, lambda_u = loss_func(
-            logits_x,
-            mixed_target[: batch_size * 2],
-            logits_u,
-            mixed_target[batch_size * 2 :],
-            epoch + batch_idx / num_iter,
-            num_warm_up_epochs,
+        Lx, Lu, lam_u = loss_func(
+            out_x=logits_x,
+            lbl_x=mixed_target[: batch_size * 2],
+            out_u=logits_u,
+            lbl_u=mixed_target[batch_size * 2 :],
+            lambda_u=lambda_u,
+            epoch=epoch + batch_idx / num_iter,
+            warm_up=num_warm_up_epochs,
+            rampup_len=rampup_len,
         )
 
         # regularization
@@ -177,7 +181,7 @@ def train(
         pred_mean = torch.softmax(logits, dim=1).mean(0)
         penalty = torch.sum(prior * torch.log(prior / pred_mean))
 
-        loss = Lx + lambda_u * Lu + penalty
+        loss = Lx + lam_u * Lu + penalty
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -208,13 +212,13 @@ def process_gmm(model, dataloader, loss_func):
     norm_losses = ((losses - losses.min()) / losses.ptp())[:, np.newaxis]
 
     # fit two component GMM to loss
-    gmm = GaussianMixture(n_components=2, max_iter=10, tol=1e-2, reg_covar=5e-4)
+    gmm = GaussianMixture(n_components=2, max_iter=10, tol=1e-2, reg_covar=5e-4, random_state=1234)
     gmm.fit(norm_losses)
     prob = gmm.predict_proba(norm_losses)
     # get value of smaller mean dist
     prob = prob[:, gmm.means_.argmin()]
     # out shape: (batch_size)
-    return prob, losses.mean()
+    return prob, losses.mean(), losses, norm_losses
 
 
 def evaluate(model1, model2, loss_func, dataloader):
@@ -247,7 +251,7 @@ def evaluate(model1, model2, loss_func, dataloader):
     return num_correct / total, roc_auc_score(lbls, preds), losses.mean()
 
 
-def linear_rampup(lambda_u, current_epoch, warm_up, rampup_len=15):
+def linear_rampup(lambda_u, current_epoch, warm_up, rampup_len):
     current = np.clip((current_epoch - warm_up) / rampup_len, 0.0, 1.0)
     return lambda_u * current
 
