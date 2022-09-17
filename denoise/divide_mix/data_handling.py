@@ -15,7 +15,7 @@ from torch.utils.data import Dataset, DataLoader
 
 
 # load vocab and encoder as globals
-vocab = torch.load('../data/vocab.pt')
+vocab = torch.load('../../data/vocab.pt')
 encode_text = lambda x: vocab(list(x))
 
 
@@ -49,11 +49,11 @@ class CleavageDataset(Dataset):
         self.mode = mode
 
         if self.mode == "test":
-            self.seq, self.lbl = read_data(f"../data/{terminus}_test.csv")
+            self.seq, self.lbl = read_data(f"../../data/{terminus}_test.csv")
         elif self.mode == 'evaluate':
-            self.seq, self.lbl = read_data(f"../data/{terminus}_val.csv")
+            self.seq, self.lbl = read_data(f"../../data/{terminus}_val.csv")
         else:
-            sequences, labels = read_data(f"../data/{terminus}_train.csv")
+            sequences, labels = read_data(f"../../data/{terminus}_train.csv")
 
             if self.mode == "train_before_GMM":
                 self.seq, self.lbl = sequences, labels
