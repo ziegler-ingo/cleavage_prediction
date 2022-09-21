@@ -185,7 +185,7 @@ class CleavageLoader:
 
             warmup_loader = DataLoader(
                 dataset=train_no_gmm,
-                batch_size=self.batch_size * 8,
+                batch_size=self.batch_size,
                 shuffle=True,
                 collate_fn=masked_no_gmm_wrapper,
                 pin_memory=True,
@@ -231,7 +231,7 @@ class CleavageLoader:
 
             into_GMM_loader = DataLoader(
                 dataset=into_GMM_dataset,
-                batch_size=self.batch_size * 16,
+                batch_size=self.batch_size,
                 collate_fn=eval_wrapper,
                 pin_memory=True,
                 shuffle=False,
@@ -247,7 +247,7 @@ class CleavageLoader:
 
             eval_loader = DataLoader(
                 dataset=eval_dataset,
-                batch_size=self.batch_size * 16,
+                batch_size=self.batch_size,
                 collate_fn=eval_wrapper,
                 pin_memory=True,
                 shuffle=False,
@@ -263,7 +263,7 @@ class CleavageLoader:
 
             test_loader = DataLoader(
                 dataset=test_dataset,
-                batch_size=self.batch_size * 16,
+                batch_size=self.batch_size,
                 collate_fn=eval_wrapper,
                 pin_memory=True,
                 shuffle=False,
