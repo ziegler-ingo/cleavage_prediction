@@ -40,6 +40,7 @@ This repository contains the code for the paper "A Preliminary Benchmark Study i
 * DivideMix, called `dividemix`
 
 ## Achieved performances
+![Performance Comparison of all models and denoising architectures for C- and N-terminal](img/perf-bar-1.png)
 ![Performance Comparison of all models and denoising architectures for C- and N-terminal](img/results_point_vertical_combined.png)
 
 ## Sources for model architectures and denoising approaches
